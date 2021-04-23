@@ -10,12 +10,12 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.jesen.code.ffmpegplaykot.util.extend.simpleStartActivity
 import com.jesen.code.ffmpegplaykot.view.activity.PickerActivity
 import com.jesen.code.ffmpegplaykot.widget.FFVideoView
 
 class MainActivity : AppCompatActivity() {
 
-    private val TAG = "MainActivity"
     private var VIDEOPATH = ""
     private val CHOICE_REQUEST_CODE = 10
 
@@ -46,9 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         openAlbum = findViewById<TextView>(R.id.open_album)
         openAlbum.setOnClickListener {
-            val intent = Intent()
-            intent.setClass(this, PickerActivity().javaClass)
-            startActivity(intent)
+            simpleStartActivity<PickerActivity>(this) {}
         }
     }
 

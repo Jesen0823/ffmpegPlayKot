@@ -14,6 +14,7 @@ import com.jesen.code.ffmpegplaykot.R
 import com.jesen.code.ffmpegplaykot.databean.MediaData
 import com.jesen.code.ffmpegplaykot.databean.MediaPrev
 import com.jesen.code.ffmpegplaykot.util.PicResizeUtil
+import com.jesen.code.ffmpegplaykot.util.extend.simpleStartActivity
 import com.jesen.code.ffmpegplaykot.view.activity.PreviewActivity
 
 class GridAdapter(context: Context) : RecyclerView.Adapter<GridAdapter.GridViewHolder>() {
@@ -76,12 +77,14 @@ class GridAdapter(context: Context) : RecyclerView.Adapter<GridAdapter.GridViewH
             }
 
             holder.image.setOnClickListener {
-                val intent = Intent(mContext, PreviewActivity::class.java)
                 val bundle = Bundle()
-                bundle.putParcelableArrayList("previewDataList", mPreviewDataList)
-                bundle.putInt("position", position)
-                intent.putExtra("bundle", bundle)
-                mContext.startActivity(intent)
+                    .apply {
+                        putParcelableArrayList("previewDataList", mPreviewDataList)
+                        putInt("position", position)
+                    }
+                simpleStartActivity<PreviewActivity>(mContext) {
+                    putExtra("bundle", bundle)
+                }
             }
         }
     }
