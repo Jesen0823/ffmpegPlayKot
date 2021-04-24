@@ -9,7 +9,9 @@ class VideoTypeFilter:IFilter<MutableList<MediaData>> {
         val iterator = t.iterator()
         while (iterator.hasNext()){
             val mediaData = iterator.next()
-            mediaData.filePath?.endsWith(".ts")?.let {
+            (mediaData.filePath?.endsWith(".ts")!!
+                    || mediaData.filePath?.endsWith(".m3u8")!!)
+                ?.let {
                 when(it){
                     true -> iterator.remove()
                 }

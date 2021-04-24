@@ -16,8 +16,9 @@ import java.io.File
 import java.io.FileOutputStream
 
 object VideoScanHelper {
-    //private val MEDIA_PICK_TEMP_FOLDER_PATH = Environment.getExternalStorageDirectory().absolutePath + "/mediaPicker/temp/"
-    private val MEDIA_PICK_TEMP_FOLDER_PATH = AppContext.filesDir.absolutePath + "/mediaPicker/temp/"
+    //private val MEDIA_PICK_TEMP_FOLDER_PATH = Environment.getExternalStorageDirectory().absolutePath + "/mediaPicker/"
+    private val MEDIA_PICK_TEMP_FOLDER_PATH =
+        AppContext.filesDir.absolutePath + "/mediaPicker/temp/"
 
     fun start(context: Context, handler: Handler) {
         Thread {
@@ -36,8 +37,8 @@ object VideoScanHelper {
             MediaStore.Video.Media.ALBUM
         )
 
-        val sortOrder:String = MediaStore.Video.Media.DATE_ADDED + " desc"
-        var cursor:Cursor? = null
+        val sortOrder: String = MediaStore.Video.Media.DATE_ADDED + " desc"
+        var cursor: Cursor? = null
         try {
             cursor = context.contentResolver.query(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
@@ -51,12 +52,12 @@ object VideoScanHelper {
                     true -> cursor?.let { parseData(context, it, handler) }
                 }
             }
-        }finally {
+        } finally {
             cursor?.close()
         }
     }
 
-    private fun parseData(context: Context, cursor: Cursor, handler: Handler){
+    private fun parseData(context: Context, cursor: Cursor, handler: Handler) {
         val thumbColumns: Array<String> = arrayOf(
             MediaStore.Video.Thumbnails.DATA,
             MediaStore.Video.Thumbnails.VIDEO_ID
@@ -66,9 +67,13 @@ object VideoScanHelper {
         do {
             val id = ScanResultUtil.getLongResultByKey(cursor, MediaStore.Video.Media._ID)
             val filePath = ScanResultUtil.getStringResultByKey(cursor, MediaStore.Video.Media.DATA)
-            val mimeType = ScanResultUtil.getStringResultByKey(cursor, MediaStore.Video.Media.MIME_TYPE)
-            val duration = ScanResultUtil.getLongResultByKey(cursor, MediaStore.Video.Media.DURATION)
-            val createTime = ScanResultUtil.getLongResultByKey(cursor, MediaStore.Video.Media.DATE_ADDED)
+            val mimeType =
+                ScanResultUtil.getStringResultByKey(cursor, MediaStore.Video.Media.MIME_TYPE)
+            val duration =
+                ScanResultUtil.getLongResultByKey(cursor, MediaStore.Video.Media.DURATION)
+            //val fileSize = ScanResultUtil.getStringResultByKey(cursor, MediaStore.Video.Media.SIZE)
+            val createTime =
+                ScanResultUtil.getLongResultByKey(cursor, MediaStore.Video.Media.DATE_ADDED)
             val albumName = ScanResultUtil.getAlbumNameFromPath(filePath)
 
             val thumbSelection = MediaStore.Video.Thumbnails.VIDEO_ID + "=?"
@@ -80,22 +85,38 @@ object VideoScanHelper {
             try {
                 thumbCursor = context.contentResolver.query(
                     MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI,
-                    thumbColumns, thumbSelection, thumbSelectionArgs, null)
+                    thumbColumns, thumbSelection, thumbSelectionArgs, null
+                )
 
                 thumbCursor?.moveToFirst().let {
                     when (it) {
                         true -> thumbNailPath = thumbCursor?.let { it1 ->
                             ScanResultUtil.getStringResultByKey(
-                                it1, MediaStore.Video.Thumbnails.DATA)
+                                it1, MediaStore.Video.Thumbnails.DATA
+                            )
                         }
                     }
                 }
-
+                AppLog.d("VideoScanHelper","first thumbNailPath=$thumbNailPath")
                 if (thumbNailPath.isNullOrEmpty()) {
                     thumbNailPath = generateThumbNail(filePath)
                 }
 
-                videoList.add(MediaData(id, createTime, duration, albumName, filePath, thumbNailPath, mimeType, null, null))
+                AppLog.d("VideoScanHelper","thumbNailPath=$thumbNailPath")
+
+                videoList.add(
+                    MediaData(
+                        id,
+                        createTime,
+                        duration,
+                        albumName,
+                        filePath,
+                        thumbNailPath,
+                        mimeType,
+                        null,
+                        null
+                    )
+                )
             } finally {
                 thumbCursor?.close()
             }
@@ -105,10 +126,14 @@ object VideoScanHelper {
         val msg: Message = Message.obtain()
         msg.obj = videoList
         msg.what = MediaType.MEDIA_TYPE_VIDEO
+        for (item in videoList){
+            item.previewPath?.let { AppLog.i("VideoScanHelper", it) }
+        }
         handler.sendMessage(msg)
     }
 
     private fun generateThumbNail(filePath: String?): String? {
+        AppLog.i("VideoScanHelper","generateThumbNail, path is $filePath")
         filePath?.let {
             var out: FileOutputStream? = null
             try {
@@ -127,10 +152,15 @@ object VideoScanHelper {
                     val bitmap = createVideoThumbnail(filePath)
                     bitmap?.let {
                         out = FileOutputStream(file)
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out)//如果想要更清晰的预览图，这里可以设置100或者png，即不压缩
+                        bitmap.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            50,
+                            out
+                        )//如果想要更清晰的预览图，这里可以设置100或者png，即不压缩
                         out?.flush()
                         bitmap.recycle()
                     }
+                    AppLog.i("VideoScanHelper","bitmap, path is ${file.absolutePath}")
                     return file.absolutePath
                 }
             } catch (e: Exception) {
@@ -148,7 +178,7 @@ object VideoScanHelper {
             retriever.setDataSource(filePath)
             bitmap = retriever.getFrameAtTime(0)
         } catch (e: Exception) {
-
+            e.printStackTrace()
         } finally {
             try {
                 retriever.release()
@@ -156,12 +186,15 @@ object VideoScanHelper {
 
             }
         }
-
+        AppLog.i("VideoScanHelper","createVideoThumbnail, bitmap: ${bitmap != null}")
         bitmap?.let {
             val width: Int = it.width
             val height: Int = it.height
+            AppLog.i("VideoScanHelper","createVideoThumbnail, bitmap, wxh=$width x $height")
+
             val max: Int = Math.max(width, height)
             if (max > 512) {
+                AppLog.i("VideoScanHelper","createVideoThumbnail, bitmap, dayu 512 do")
                 val scale: Float = 512f / max
                 val w = Math.round(scale * width)
                 val h = Math.round(scale * height)

@@ -8,6 +8,7 @@ data class MediaData(
         var filePath: String?,
         var previewPath: String?,
         var mimeType: String?,
+        //var fileSize:String?,
         var latitude: Float?,
         var longitude: Float?
 ) {

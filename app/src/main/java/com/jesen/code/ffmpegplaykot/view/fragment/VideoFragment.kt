@@ -3,6 +3,7 @@ package com.jesen.code.ffmpegplaykot.view.fragment
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -10,12 +11,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.jesen.code.ffmpegplaykot.R
 import com.jesen.code.ffmpegplaykot.databean.MediaPrev
+import com.jesen.code.ffmpegplaykot.util.AppLog
 import com.jesen.code.ffmpegplaykot.view.ZoomVideoView
 import java.io.File
 
+private const val TAG = "VideoFragment"
 class VideoFragment :Fragment(){
 
     private lateinit var mFilePath:String
@@ -32,7 +36,7 @@ class VideoFragment :Fragment(){
             val fragment = VideoFragment()
             val bundle = Bundle()
             bundle.putString("filePath", mediaPrev.filePath)
-            bundle.putString("thumbNailPath", mediaPrev.thumbnailPath)
+            bundle.putString("previewPath", mediaPrev.previewPath)
             fragment.arguments = bundle
             return fragment
         }
@@ -40,9 +44,12 @@ class VideoFragment :Fragment(){
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLog.i(TAG, "onCreate")
         arguments?.let {
             mFilePath = it.getString("filePath").toString()
-            mThumbnailPath = it.getString("thumbNailPath").toString()
+            mThumbnailPath = it.getString("previewPath").toString()
+            AppLog.i(TAG, "onCreate , mFilePath=$mFilePath")
+            AppLog.i(TAG, "onCreate , mThumbnailPath=$mThumbnailPath")
         }
     }
 
@@ -65,10 +72,18 @@ class VideoFragment :Fragment(){
     private fun initView(view: View){
         mVideoView = view.findViewById(R.id.zoom_video_view)
         mFirstFrame = view.findViewById(R.id.preview_frame)
-        mPlayPic = view.findViewById(R.id.choice_play)
+        mPlayPic = view.findViewById(R.id.frame_play)
+        AppLog.i(TAG, "initView , mThumbnailPath=$mThumbnailPath")
 
         mThumbnailPath?.let {
-            mFirstFrame?.setImageURI(Uri.fromFile(File(it)))
+            val uri = if (Build.VERSION.SDK_INT < 24){
+                Uri.fromFile(File(it))
+            }else{
+                activity?.let { it1 -> FileProvider.getUriForFile(it1,
+                    "com.jesen.code.ffmpegplaykot.fpPlayKot" ,File(it)) }!!
+            }
+            AppLog.i(TAG, "initView , uri=$uri")
+            mFirstFrame?.setImageURI(uri)
         }
 
         mVideoView.setVideoPath(mFilePath)
@@ -91,6 +106,7 @@ class VideoFragment :Fragment(){
 
     private fun resize(): IntArray {
         val result = IntArray(2){0}
+        AppLog.i(TAG, "resize, mThumbnailPath:$mThumbnailPath")
         mThumbnailPath.let {
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
@@ -98,10 +114,11 @@ class VideoFragment :Fragment(){
 
             val screenWidth = resources.displayMetrics.widthPixels
             val screenHeight = resources.displayMetrics.heightPixels
+            AppLog.i(TAG, "resize, screenWidth:$screenWidth, screenHeight:$screenHeight")
 
             val originWidth = options.outWidth
             val originHeight = options.outHeight
-
+            AppLog.i(TAG, "resize, originWidth:$originWidth, originHeight:$originHeight")
             (originHeight > originWidth).let {
                 if (it){
                     result[1] = maxOf(originHeight, screenHeight)
@@ -116,15 +133,9 @@ class VideoFragment :Fragment(){
         return result
     }
 
-    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
-        super.setUserVisibleHint(isVisibleToUser)
-        if (!isVisibleToUser){
-            pause()
-        }
-    }
-
     override fun onPause() {
         super.onPause()
+        AppLog.i(TAG, "onPause")
         pause()
     }
 

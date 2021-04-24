@@ -6,7 +6,8 @@ import androidx.viewpager.widget.ViewPager
 import com.jesen.code.ffmpegplaykot.R
 import com.jesen.code.ffmpegplaykot.adapter.FragAdapter
 import com.jesen.code.ffmpegplaykot.databean.MediaPrev
-
+import com.jesen.code.ffmpegplaykot.util.AppLog
+private const val TAG = "PreviewActivity"
 class PreviewActivity : AppCompatActivity() {
     private lateinit var mAdapter: FragAdapter
     private lateinit var mViewPager:ViewPager
@@ -14,9 +15,19 @@ class PreviewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preview)
-
+        AppLog.i(TAG,"onCreate")
         initView()
         initData()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        AppLog.i(TAG,"onPause")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        AppLog.i(TAG,"onDestroy")
     }
 
     private fun initView(){

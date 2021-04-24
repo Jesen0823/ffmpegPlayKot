@@ -12,6 +12,7 @@ import com.jesen.code.ffmpegplaykot.R
 import com.jesen.code.ffmpegplaykot.adapter.GridAdapter
 import com.jesen.code.ffmpegplaykot.databean.MediaData
 import com.jesen.code.ffmpegplaykot.databean.MediaType
+import com.jesen.code.ffmpegplaykot.util.AppLog
 import com.jesen.code.ffmpegplaykot.util.FilterUtil
 import com.jesen.code.ffmpegplaykot.util.PicScanHelper
 import com.jesen.code.ffmpegplaykot.util.VideoScanHelper
@@ -19,6 +20,7 @@ import com.jesen.code.ffmpegplaykot.util.extend.otherwise
 import com.jesen.code.ffmpegplaykot.util.extend.yes
 import java.lang.ref.WeakReference
 
+private const val TAG = "PickerActivity"
 class PickerActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
@@ -34,12 +36,23 @@ class PickerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_picker)
+        AppLog.i(TAG,"onCreate")
 
         initView()
 
         initData()
 
         initScanEnvironment()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        AppLog.i(TAG,"onPause")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        AppLog.i(TAG,"onDestroy")
     }
 
     private fun initView() {
@@ -62,8 +75,7 @@ class PickerActivity : AppCompatActivity() {
     private fun startScan() {
         val handler = ScanHandler(this)
         VideoScanHelper.start(this, handler)
-        PicScanHelper.start(this, handler)
-
+        //PicScanHelper.start(this, handler)
     }
 
     private class ScanHandler(activity: PickerActivity) : Handler() {

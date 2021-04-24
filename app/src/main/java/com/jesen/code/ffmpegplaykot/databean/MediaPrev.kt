@@ -5,7 +5,7 @@ import android.os.Parcelable
 
 data class MediaPrev(var mimeType:String?,
                      var filePath:String?,
-                     var thumbnailPath:String?,
+                     var previewPath:String?,
                      var createTime: Long) :Parcelable, Comparable<MediaPrev>{
 
     constructor(parcel: Parcel) : this(
@@ -18,7 +18,7 @@ data class MediaPrev(var mimeType:String?,
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(mimeType)
         parcel.writeString(filePath)
-        parcel.writeString(thumbnailPath)
+        parcel.writeString(previewPath)
         parcel.writeLong(createTime)
     }
 

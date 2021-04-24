@@ -18,7 +18,7 @@ object FilterUtil {
         return filterManager
     }
 
-    fun getDefaultVideoFilterManager():FilterManager{
+    fun getDefaultVideoFilterManager(): FilterManager {
         val filterManager = FilterManager()
         filterManager.addFilter(FilePathFilter())
         filterManager.addFilter(VideoTypeFilter())
